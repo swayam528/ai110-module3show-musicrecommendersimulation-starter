@@ -222,146 +222,65 @@ You can add more tests in `tests/test_recommender.py`.
 
 ## Experiments You Tried
 
-Use this section to document the experiments you ran. For example:
+### Experiment 1 — Weight shift: halve genre (3.0 → 1.5), double energy (2.0 → 4.0)
 
-- What happened when you changed the weight on genre from 2.0 to 0.5
-- What happened when you added tempo or valence to the score
-- How did your system behave for different types of users
+Tested on the High-Energy Pop profile. Baseline top-5:
+
+| Rank | Song | Score |
+|---|---|---|
+| 1 | Sunrise City (pop) | 9.53 |
+| 2 | Gym Hero (pop) | 7.77 |
+| 3 | Rooftop Lights (indie pop) | 6.15 |
+| 4 | Drop the Signal (electronic) | 4.67 |
+| 5 | Bailando en Fuego (latin) | 4.66 |
+
+After shift (genre 1.5, energy 4.0):
+
+| Rank | Song | Score |
+|---|---|---|
+| 1 | Sunrise City (pop) | 9.87 |
+| 2 | Gym Hero (pop) | 8.21 |
+| 3 | Rooftop Lights (indie pop) | 7.87 |
+| 4 | Bailando en Fuego (latin) | 6.62 |
+| 5 | Drop the Signal (electronic) | 6.59 |
+
+**What changed:** The top 2 stayed the same (both pop with high energy), but the score gaps closed — non-pop songs climbed significantly. Drop the Signal jumped from 4.67 to 6.59 because its energy (0.94) is nearly perfect for the target (0.90), and that now earns 4.0 × 0.96 = 3.84 pts instead of 1.92. Halving the genre bonus didn't dethrone pop songs, but it made the catalog feel less "genre-locked" — energy-matching songs from other genres could compete.
+
+**Conclusion:** The genre weight is the single biggest lever in the scoring formula. Halving it didn't change the winner but significantly changed which non-matching songs got surfaced. This confirms that genre acts as a hard filter more than a soft preference in the baseline.
+
+### Experiment 2 — Profile comparison: what changed and why
+
+| Profile A | Profile B | Key difference in output |
+|---|---|---|
+| **Lofi / Chill** | **High-Energy Pop** | Lofi profile surfaces quiet, acoustic tracks (Library Rain, Midnight Coding). Pop profile surfaces bright, produced songs (Sunrise City, Gym Hero). The genre bonus drives both — changing genre changes the entire top result. |
+| **High-Energy Pop** | **Deep Intense Rock** | Both want high energy, but Rock gets Storm Runner clearly at #1 (only rock song). Pop gets Sunrise City. Gym Hero appears #2 for *both* because it has the right energy and a shared mood label ("intense" ≈ "high energy"). |
+| **Deep Intense Rock** | **Conflicting (Metal/Sad, energy 0.95)** | Rock profile is internally consistent — high energy + intense mood both point to the same songs. The conflicting profile cannot satisfy both halves: Iron Cathedral wins on genre + energy but is "angry" not "sad." The score drops from 9.74 to 7.81 for #1, showing the system is stressed. |
+| **Unknown Genre (k-pop)** | **Extreme Acoustic Minimalist** | Both expose catalog gaps. k-pop earns zero genre points so the system falls back to mood + numeric features — reasonable results but low confidence (all scores < 7.0). Classical earns one perfect match (9.63) then falls to 4.31 — the opposite problem: one song nails it, everything else is irrelevant. |
+
+**Plain-language takeaway on why Gym Hero keeps showing up:** Gym Hero is a pop song with very high energy (0.93) and almost no acoustic instruments. That combination happens to match a lot of different user targets numerically. The genre bonus alone (3.0 pts) makes it nearly impossible to push out of the top 3 for any pop listener, even when the mood is wrong. In real apps this is called a "popularity trap" — a small set of songs with broad feature coverage dominate rankings across many different user types.
+
+### Experiment 3 — Catalog diversity effect
+
+Lofi has 3 songs in the catalog; most genres have 1. When the lofi profile ran, the top 3 results were all lofi songs. When the classical profile ran, exactly 1 song served the genre — and the score cliff between #1 (9.63) and #2 (4.31) revealed how badly single-song genres fail their users.
 
 ---
 
 ## Limitations and Risks
 
-Summarize some limitations of your recommender.
-
-Examples:
-
-- It only works on a tiny catalog
-- It does not understand lyrics or language
-- It might over favor one genre or mood
-
-You will go deeper on this in your model card.
+- **Tiny catalog**: 20 songs means most genre searches return only 1–3 matches. Recommendations for niche genres degrade to near-random beyond the #1 result.
+- **No memory**: The system starts fresh every run. It cannot learn that a user always skips metal songs or replays jazz ones.
+- **Genre is binary**: A "rock" listener gets zero genre points for a metal song, even though rock and metal are closely related. There is no concept of adjacent genres.
+- **Silent coverage gaps**: When no songs match the user's genre (e.g., k-pop), the system returns results without warning the user that it is guessing.
+- **Lyrics and language are invisible**: Two songs with identical feature values but completely different lyrical themes or languages are treated as identical by the scorer.
+- **Fixed weight ordering**: Genre is always more important than mood. Users who care deeply about mood over genre have no way to express that without editing the Python source code.
 
 ---
 
 ## Reflection
 
-Read and complete `model_card.md`:
+[**Model Card**](model_card.md) | [**Profile Comparisons**](reflection.md)
 
-[**Model Card**](model_card.md)
+Building this recommender made the hidden work inside apps like Spotify suddenly visible. Every time Spotify plays "something you'll love," it is running a version of this loop — scoring candidates, ranking them, and slicing the top results — except with millions of songs, hundreds of features, and years of behavioral data instead of 20 rows in a CSV. The surprising part was how convincing a six-feature weighted sum can feel when the weights are tuned to the right user. Library Rain appearing at #1 for the lofi/chill profile with a score of 9.67 felt genuinely correct, even though the "intelligence" behind it was six additions and a sort.
 
-Write 1 to 2 paragraphs here about what you learned:
+The bias experiments were the most instructive part. When the genre weight was halved, the rankings shifted but the same pop songs still dominated — which revealed that the entire feel of the system changed not because of one setting but because of the interaction between all six weights together. That is the same dynamic that makes real recommenders so hard to audit: changing one parameter rarely produces a clean, explainable outcome. It just shifts which songs the bias favors. The biggest risk in a system like this is not a bug — it is a design assumption that seems reasonable on paper but silently disadvantages users whose tastes do not fit the mold the designer imagined.
 
-- about how recommenders turn data into predictions
-- about where bias or unfairness could show up in systems like this
-
----
-
-## 7. `model_card_template.md`
-
-Combines reflection and model card framing from the Module 3 guidance. :contentReference[oaicite:2]{index=2}
-
-```markdown
-# 🎧 Model Card - Music Recommender Simulation
-
-## 1. Model Name
-
-Give your recommender a name, for example:
-
-> VibeFinder 1.0
-
----
-
-## 2. Intended Use
-
-- What is this system trying to do
-- Who is it for
-
-Example:
-
-> This model suggests 3 to 5 songs from a small catalog based on a user's preferred genre, mood, and energy level. It is for classroom exploration only, not for real users.
-
----
-
-## 3. How It Works (Short Explanation)
-
-Describe your scoring logic in plain language.
-
-- What features of each song does it consider
-- What information about the user does it use
-- How does it turn those into a number
-
-Try to avoid code in this section, treat it like an explanation to a non programmer.
-
----
-
-## 4. Data
-
-Describe your dataset.
-
-- How many songs are in `data/songs.csv`
-- Did you add or remove any songs
-- What kinds of genres or moods are represented
-- Whose taste does this data mostly reflect
-
----
-
-## 5. Strengths
-
-Where does your recommender work well
-
-You can think about:
-
-- Situations where the top results "felt right"
-- Particular user profiles it served well
-- Simplicity or transparency benefits
-
----
-
-## 6. Limitations and Bias
-
-Where does your recommender struggle
-
-Some prompts:
-
-- Does it ignore some genres or moods
-- Does it treat all users as if they have the same taste shape
-- Is it biased toward high energy or one genre by default
-- How could this be unfair if used in a real product
-
----
-
-## 7. Evaluation
-
-How did you check your system
-
-Examples:
-
-- You tried multiple user profiles and wrote down whether the results matched your expectations
-- You compared your simulation to what a real app like Spotify or YouTube tends to recommend
-- You wrote tests for your scoring logic
-
-You do not need a numeric metric, but if you used one, explain what it measures.
-
----
-
-## 8. Future Work
-
-If you had more time, how would you improve this recommender
-
-Examples:
-
-- Add support for multiple users and "group vibe" recommendations
-- Balance diversity of songs instead of always picking the closest match
-- Use more features, like tempo ranges or lyric themes
-
----
-
-## 9. Personal Reflection
-
-A few sentences about what you learned:
-
-- What surprised you about how your system behaved
-- How did building this change how you think about real music recommenders
-- Where do you think human judgment still matters, even if the model seems "smart"
-```

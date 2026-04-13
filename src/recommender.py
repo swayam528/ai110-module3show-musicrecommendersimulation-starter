@@ -55,12 +55,44 @@ class Recommender:
         self.songs = songs
 
     def recommend(self, user: UserProfile, k: int = 5) -> List[Song]:
-        # TODO: Implement recommendation logic
-        return self.songs[:k]
+        """Score every song against user preferences and return the top-k sorted by score."""
+        prefs = {
+            "favorite_genre": user.favorite_genre,
+            "favorite_mood":  user.favorite_mood,
+            "target_energy":  user.target_energy,
+            "target_tempo":   user.target_tempo,
+            "target_valence": user.target_valence,
+            "likes_acoustic": user.likes_acoustic,
+            "weights":        user.weights,
+        }
+        scored = sorted(
+            self.songs,
+            key=lambda s: score_song(prefs, {
+                "genre": s.genre, "mood": s.mood, "energy": s.energy,
+                "tempo_bpm": s.tempo_bpm, "valence": s.valence,
+                "acousticness": s.acousticness,
+            })[0],
+            reverse=True,
+        )
+        return scored[:k]
 
     def explain_recommendation(self, user: UserProfile, song: Song) -> str:
-        # TODO: Implement explanation logic
-        return "Explanation placeholder"
+        """Return a human-readable explanation of why this song was recommended."""
+        prefs = {
+            "favorite_genre": user.favorite_genre,
+            "favorite_mood":  user.favorite_mood,
+            "target_energy":  user.target_energy,
+            "target_tempo":   user.target_tempo,
+            "target_valence": user.target_valence,
+            "likes_acoustic": user.likes_acoustic,
+            "weights":        user.weights,
+        }
+        _, reasons = score_song(prefs, {
+            "genre": song.genre, "mood": song.mood, "energy": song.energy,
+            "tempo_bpm": song.tempo_bpm, "valence": song.valence,
+            "acousticness": song.acousticness,
+        })
+        return " | ".join(reasons)
 
 def load_songs(csv_path: str) -> List[Dict]:
     """Read songs.csv and return a list of dicts with typed numeric fields."""
