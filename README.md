@@ -73,7 +73,7 @@ else:
     genre_points = 0.0
 ```
 
-*Why 3.0?* The catalog has 13 distinct genres. A random song has only an ~8% chance of matching. Genre defines the entire sonic landscape (instrumentation, production, rhythm), so a match is the strongest signal available.
+_Why 3.0?_ The catalog has 13 distinct genres. A random song has only an ~8% chance of matching. Genre defines the entire sonic landscape (instrumentation, production, rhythm), so a match is the strongest signal available.
 
 ---
 
@@ -86,7 +86,7 @@ else:
     mood_points = 0.0
 ```
 
-*Why 2.0, not 3.0?* Mood is important but more porous than genre. A "chill" classical piece and a "chill" lofi track share a mood label but sound completely different. Genre narrows the sonic world first; mood refines within it.
+_Why 2.0, not 3.0?_ Mood is important but more porous than genre. A "chill" classical piece and a "chill" lofi track share a mood label but sound completely different. Genre narrows the sonic world first; mood refines within it.
 
 ---
 
@@ -134,15 +134,15 @@ Tempo is divided by 200 to convert BPM to the same 0–1 scale as the other feat
 
 ### Weight summary
 
-| Feature | Type | Max points | Why this weight |
-|---|---|---|---|
-| Genre | categorical match | 3.0 | Rarest match (~8% chance), strongest sonic constraint |
-| Mood | categorical match | 2.0 | Strong signal but less precise than genre |
-| Energy | continuous similarity | 2.0 | Widest numeric range; best single feel proxy |
-| Acousticness | continuous similarity | 1.5 | Cleanly separates organic vs produced |
-| Valence | continuous similarity | 1.0 | Users tolerate wider variation |
-| Tempo | continuous similarity | 0.5 | Redundant with energy; needs BPM normalization |
-| **Total** | | **10.0** | |
+| Feature      | Type                  | Max points | Why this weight                                       |
+| ------------ | --------------------- | ---------- | ----------------------------------------------------- |
+| Genre        | categorical match     | 3.0        | Rarest match (~8% chance), strongest sonic constraint |
+| Mood         | categorical match     | 2.0        | Strong signal but less precise than genre             |
+| Energy       | continuous similarity | 2.0        | Widest numeric range; best single feel proxy          |
+| Acousticness | continuous similarity | 1.5        | Cleanly separates organic vs produced                 |
+| Valence      | continuous similarity | 1.0        | Users tolerate wider variation                        |
+| Tempo        | continuous similarity | 0.5        | Redundant with energy; needs BPM normalization        |
+| **Total**    |                       | **10.0**   |                                                       |
 
 ---
 
@@ -171,6 +171,15 @@ Tempo is divided by 200 to convert BPM to the same 0–1 scale as the other feat
 ## Sample Output
 
 ![Recommendation output](recommendationOutput.png)
+
+## Sample Output 2
+
+![Phase 4 Recommendation Output](recommendationOutput2.png)
+![Phase 4 Recommendation Output](image.png)
+![Phase 4 Recommendation Output](image2.png)
+![Phase 4 Recommendation Output](image3.png)
+![Phase 4 Recommendation Output](image4.png)
+![Phase 4 Recommendation Output](image5.png)
 
 ---
 
