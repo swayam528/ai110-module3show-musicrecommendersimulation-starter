@@ -28,6 +28,21 @@ class UserProfile:
     favorite_mood: str
     target_energy: float
     likes_acoustic: bool
+    target_tempo: float = 80.0
+    target_valence: float = 0.60
+    weights: Dict = None
+
+    def __post_init__(self):
+        if self.weights is None:
+            # Max possible score = 3.0 + 2.0 + 2.0 + 1.5 + 1.0 + 0.5 = 10.0
+            self.weights = {
+                "genre": 3.0,        # categorical: strongest signal (~8% random match rate)
+                "mood": 2.0,         # categorical: important but less precise than genre
+                "energy": 2.0,       # continuous: widest catalog range (0.22–0.97)
+                "acousticness": 1.5, # continuous: separates organic vs produced
+                "valence": 1.0,      # continuous: users tolerate more variation here
+                "tempo": 0.5,        # continuous: normalized /200; partially redundant with energy
+            }
 
 class Recommender:
     """
