@@ -168,6 +168,10 @@ Tempo is divided by 200 to convert BPM to the same 0–1 scale as the other feat
 | `energy_target`   | float 0–1 | How energetic the user wants songs to be                                    |
 | `weights`         | dict      | How much each feature matters (e.g. `{"genre": 3, "mood": 2, "energy": 1}`) |
 
+## Sample Output
+
+![Recommendation output](recommendationOutput.png)
+
 ---
 
 ## Getting Started

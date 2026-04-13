@@ -9,11 +9,17 @@ You will implement the functions in recommender.py:
 - recommend_songs
 """
 
+import os
 from recommender import load_songs, recommend_songs
+
+# Resolve data path relative to this file so the script works from any directory.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(_HERE, "..", "data", "songs.csv")
 
 
 def main() -> None:
-    songs = load_songs("data/songs.csv") 
+    songs = load_songs(DATA_PATH)
+    print(f"Loaded songs: {len(songs)}")
 
     # Taste profile: late-night study listener
     # Prefers mellow, acoustic-leaning tracks to stay focused without distraction.
@@ -36,14 +42,22 @@ def main() -> None:
 
     recommendations = recommend_songs(user_prefs, songs, k=5)
 
-    print("\nTop recommendations:\n")
-    for rec in recommendations:
-        # You decide the structure of each returned item.
-        # A common pattern is: (song, score, explanation)
-        song, score, explanation = rec
-        print(f"{song['title']} - Score: {score:.2f}")
-        print(f"Because: {explanation}")
-        print()
+    print()
+    print("=" * 52)
+    print("  TOP RECOMMENDATIONS")
+    print(f"  Genre: {user_prefs['favorite_genre']}  |  Mood: {user_prefs['favorite_mood']}  |  Energy: {user_prefs['target_energy']}")
+    print("=" * 52)
+
+    for rank, (song, score, explanation) in enumerate(recommendations, start=1):
+        print(f"\n  #{rank}  {song['title']}  —  {song['artist']}")
+        print(f"       Score: {score:.2f} / 10.0")
+        print(f"       Genre: {song['genre']}  |  Mood: {song['mood']}  |  Energy: {song['energy']}")
+        print("       Why:")
+        for reason in explanation.split(" | "):
+            print(f"         • {reason}")
+        print("  " + "-" * 50)
+
+    print()
 
 
 if __name__ == "__main__":
